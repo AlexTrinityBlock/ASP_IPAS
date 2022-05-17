@@ -9,24 +9,24 @@ namespace ASP_IPAS.Controllers
 {
     public class HomeController : Controller
     {
+        //主頁
         public ActionResult Index()
         {
-            MySQLModel model = new MySQLModel();
-            return View();
+            if ((string)(Session["IsLogin"]) == "true")
+            {
+                return View();
+            }
+            else
+            {
+                return Redirect("/Home/Login");
+            }
         }
 
-        public ActionResult About()
+        //登入
+        public ActionResult Login()
         {
-            ViewBag.Message = "Your application description page.";
-
             return View();
         }
 
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
     }
 }

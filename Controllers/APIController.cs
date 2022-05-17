@@ -6,6 +6,8 @@ using System.Web.Mvc;
 using Newtonsoft.Json;
 using ASP_IPAS.Models;
 
+//帳號:Alice 密碼:123
+
 namespace ASP_IPAS.Controllers
 {
     public class APIController : Controller
