@@ -14,7 +14,7 @@ namespace ASP_IPAS.Controllers
         {
             if ((string)(Session["IsLogin"]) == "true")
             {
-                return View();
+                return Redirect("/Home/dashboard");
             }
             else
             {
@@ -28,5 +28,17 @@ namespace ASP_IPAS.Controllers
             return View();
         }
 
+        //儀表板
+        public ActionResult dashboard()
+        {
+            if ((string)(Session["IsLogin"]) == "true")
+            {
+                return View();
+            }
+            else
+            {
+                return Redirect("/Home/Login");
+            }
+        }
     }
 }
