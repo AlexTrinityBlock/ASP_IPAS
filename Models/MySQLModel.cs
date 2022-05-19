@@ -42,6 +42,7 @@ namespace ASP_IPAS.Models
             try
             {
                 getDataByUserName("Alice");
+                getTaskData();
             }
             catch (Exception ex)
             {
@@ -87,6 +88,22 @@ namespace ASP_IPAS.Models
             }
             catch (Exception ex) { }
 
+            //重建任務排程資料庫
+            sql = @"
+                CREATE TABLE IF NOT EXISTS `tasklist` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `taskName` varchar(50) NOT NULL DEFAULT '',
+                  `startTime` varchar(50) NOT NULL DEFAULT '',
+                  `endTime` varchar(50) NOT NULL DEFAULT '',
+                  `needNumber` varchar(50) NOT NULL DEFAULT '',
+                  `finishedNumber` varchar(50) NOT NULL DEFAULT '',
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            ";
+            //
+            cmd = new MySqlCommand(sql, conn);
+            cmd.ExecuteNonQuery();
+
             conn.Close();
         }
 
@@ -115,6 +132,81 @@ namespace ASP_IPAS.Models
             }
 
             return userDataModel;
+        }
+
+        //取得工作任務資料
+        public string getTaskData()
+        {
+            conn.Open();
+            string sql = @"SELECT * FROM `tasklist` ";
+
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            DataTable dataTable = new DataTable();
+            MySqlDataReader sdr = cmd.ExecuteReader();
+
+            List<TaskData> taskDataList = new List<TaskData>();
+
+            if (sdr.HasRows)
+            {
+                while (sdr.Read())
+                {
+                    TaskData taskData = new TaskData();
+                    taskData.taskName = sdr["taskName"].ToString();
+                    taskData.startTime = sdr["startTime"].ToString();
+                    taskData.endTime = sdr["endTime"].ToString();
+                    taskData.needNumber = sdr["needNumber"].ToString();
+                    taskData.finishedNumber = sdr["finishedNumber"].ToString();
+                    taskDataList.Add(taskData);
+                }
+            }
+
+            conn.Close();
+
+            string result = "";
+            result += "[";
+            foreach (TaskData taskData in taskDataList)
+            {
+                result += "{";
+                result += "\"taskName\":\"" + taskData.taskName + "\",";
+                result += "\"startTime\":\"" + taskData.startTime + "\",";
+                result += "\"endTime\":\"" + taskData.endTime + "\",";
+                result += "\"needNumber\":\"" + taskData.needNumber + "\",";
+                result += "\"finishedNumber\":\"" + taskData.finishedNumber + "\"";
+                result += "},";
+            }
+
+            result = result.Remove(result.Length - 1);
+
+            result += "]";
+
+            return result;
+        }
+
+        //設置工作任務資料
+        public void setTaskData(TaskData taskDataObj)
+        {
+            conn.Open();
+            string sql = @"INSERT INTO `tasklist` (`taskName`,`startTime`,`endTime`,`needNumber`,`finishedNumber`) VALUES (@taskName,@startTime,@endTime,@needNumber,@finishedNumber)";
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+
+            cmd.Parameters.Add("@taskName", MySqlDbType.VarChar);
+            cmd.Parameters["@taskName"].Value = taskDataObj.taskName;
+
+            cmd.Parameters.Add("@startTime", MySqlDbType.VarChar);
+            cmd.Parameters["@startTime"].Value = taskDataObj.startTime;
+
+            cmd.Parameters.Add("@endTime", MySqlDbType.VarChar);
+            cmd.Parameters["@endTime"].Value = taskDataObj.endTime;
+
+            cmd.Parameters.Add("@needNumber", MySqlDbType.VarChar);
+            cmd.Parameters["@needNumber"].Value = taskDataObj.needNumber;
+
+            cmd.Parameters.Add("@finishedNumber", MySqlDbType.VarChar);
+            cmd.Parameters["@finishedNumber"].Value = taskDataObj.finishedNumber;
+
+            cmd.ExecuteNonQuery();
+            conn.Close();
+
         }
     }
 }

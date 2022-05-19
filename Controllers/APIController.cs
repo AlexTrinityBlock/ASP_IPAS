@@ -83,5 +83,24 @@ namespace ASP_IPAS.Controllers
             var jsonData = new { data = result };
             return Json(jsonData, JsonRequestBehavior.AllowGet);
         }
+
+        //取得排程任務資訊
+        [HttpGet]
+        public ActionResult getTaskInfo(string data)
+        {
+            MySQLModel mySQLModel = new MySQLModel();
+            var jsonData = new { data = mySQLModel.getTaskData() };
+            return Json(jsonData, JsonRequestBehavior.AllowGet);
+        }
+
+        //寫入排程任務資訊
+        [HttpPost]
+        public ActionResult postTaskInfo(string data)
+        {
+            MySQLModel mySQLModel = new MySQLModel();
+            var taskDataObj = JsonConvert.DeserializeObject<TaskData>(data);
+            mySQLModel.setTaskData(taskDataObj);
+            return Content("");
+        }
     }
 }

@@ -1,6 +1,9 @@
 ﻿
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+<!--Bootstrap儀錶板CSS-->
 @Styles.Render("~/Content/dashboard-styles.css")
+<!--甘特圖CSS-->
+@Styles.Render("~/Content/frappe-gantt.css")
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
 
 <body class="sb-nav-fixed" style="background-color:black">
@@ -10,8 +13,10 @@
         <!-- Sidebar Toggle-->
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
     </nav>
-    <!--側邊欄Start-->
+    <!--側邊欄與主內容Start-->
     <div id="layoutSidenav">
+
+        <!--側邊欄Start-->
         <div id="layoutSidenav_nav">
             <nav class="sb-sidenav accordion sb-sidenav-dark" style="background-color: #ff8404" id="sidenavAccordion">
                 <div class="sb-sidenav-menu">
@@ -36,12 +41,15 @@
                         </a>
                     </div>
                 </div>
+
                 <div class="sb-sidenav-footer">
                     <div class="small">期末作業:</div>
                     IPAS工業生產輔助
                 </div>
             </nav>
         </div>
+        <!--側邊欄End-->
+
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
@@ -50,7 +58,7 @@
                         <li class="breadcrumb-item active" style="color: #ff8404">輸入排程，概覽生產流程。</li>
                     </ol>
                     <div class="row">
-                        <div class="col-xl-3 col-md-6">
+                        <div class=" col-md-6">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
                                     <h5 style="color: #ff8404">打卡</h5>
@@ -69,7 +77,7 @@
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-6">
+                        <div class=" col-md-6">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
                                     <h5 style="color: #ff8404">完成進度</h5>
@@ -86,7 +94,7 @@
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-12">
+                        <div class=" col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
                                     <h5 style="color: #ff8404">檔案清單</h5>
@@ -94,18 +102,21 @@
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-12">
+                        <div class=" col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
                                     <h5 style="color: #ff8404">工作排程</h5>
+                                    <!--工作排程圖-->
+                                    <div id="gantt"></div>
+                                    <!--工作排程圖End-->
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-12">
+                        <div class=" col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
-                                    <h5 style="color: #ff8404">代辦事項</h5>
+                                    <h5 style="color: #ff8404">待辦事項</h5>
                                 </div>
                             </div>
                         </div>
@@ -114,6 +125,7 @@
 
                 </div>
             </main>
+            <!--頁尾Start-->
             <footer class="py-4  mt-auto" style="background-color: #343a40">
                 <div class="container-fluid px-4" style="background-color: #343a40">
                     <div class="d-flex align-items-center justify-content-between small">
@@ -121,17 +133,23 @@
                     </div>
                 </div>
             </footer>
+            <!--頁尾End-->
         </div>
     </div>
-    <!--側邊欄End-->
+    <!--側邊欄與主內容End-->
 </body>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 @Scripts.Render("~/Scripts/dashboard-script.js")
 @Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+<!--引入甘特圖-->
+@Scripts.Render("~/Scripts/frappe-gantt.js")
+<!--引入SW2跳窗-->
+@Scripts.Render("~/Scripts/sweetalert2.js")
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
 
+<!--圓環統計圖CSS-->
 <style>
 
     #svg circle {
@@ -190,26 +208,82 @@
     }
 </style>
 
+<!--圓環統計圖JS-->
 <script>
-    var val = 60;
-    var $circle = $('#svg #bar');
-    $("#arc-label").html(val+"%");
+    function arcProgressBar() {
+        var val = 60;
+        var $circle = $('#svg #bar');
+        $("#arc-label").html(val + "%");
 
-    if (isNaN(val)) {
-        val = 100;
-    }
-    else {
-        var r = $circle.attr('r');
-        var c = Math.PI * (r * 2);
+        if (isNaN(val)) {
+            val = 100;
+        }
+        else {
+            var r = $circle.attr('r');
+            var c = Math.PI * (r * 2);
 
-        if (val < 0) { val = 0; }
-        if (val > 100) { val = 100; }
+            if (val < 0) { val = 0; }
+            if (val > 100) { val = 100; }
 
-        var pct = ((100 - val) / 100) * c;
+            var pct = ((100 - val) / 100) * c;
 
-        $circle.css({ strokeDashoffset: pct });
+            $circle.css({ strokeDashoffset: pct });
 
-        $('#cont').attr('data-pct', val);
+            $('#cont').attr('data-pct', val);
+        }
     }
 
 </script>
+
+<!--甘特圖任務-->
+<script>
+    var gantt;
+    var tasks = []
+</script>
+
+<!--取得目前工作列表-->
+<script>
+    function getTasksData() {
+        $.ajax({
+            method: "GET",
+            url: "/API/getTaskInfo",
+            data: {},
+            statusCode: {
+                404: function (err) {
+                    console.error(err)
+                },
+                500: function (err) {
+                    console.error(err)
+                },
+            }
+        })
+            .done(function (msg) {
+                tasks = []
+                let tasksTemp = JSON.parse(msg.data)
+                for (i = 0; i < tasksTemp.length; i++) {
+                    let elementTask = {
+                        id: "task" + i,
+                        name: tasksTemp[i].taskName,
+                        start: tasksTemp[i].startTime,
+                        end: tasksTemp[i].endTime,
+                        progress: (tasksTemp[i].finishedNumber / tasksTemp[i].needNumber) * 100,
+                        custom_class: 'class' + i
+                    }
+                    tasks.push(elementTask);
+                }
+                gantt = new Gantt("#gantt", tasks);
+                gantt.change_view_mode('Month')
+                //'Day', 'Week', 'Month'
+            });
+    }
+</script>
+
+<!--JS主函數-->
+<script>
+    $(function () {
+        //取得資料
+        getTasksData()
+        arcProgressBar()
+    });
+</script>
+

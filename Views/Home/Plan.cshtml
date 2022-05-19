@@ -1,6 +1,11 @@
-﻿
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+﻿<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+<!--Bootstrap儀錶板CSS-->
 @Styles.Render("~/Content/dashboard-styles.css")
+<!--甘特圖CSS-->
+@Styles.Render("~/Content/frappe-gantt.css")
+<!--JQuery-UI日期選擇器CSS-->
+@Styles.Render("~/Content/jquery-ui.css")
+<!--Fontawesome小圖標-->
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
 
 <body class="sb-nav-fixed" style="background-color:black">
@@ -66,11 +71,11 @@
                                     </div>
                                     <div class="input-group mb-3">
                                         <span class="input-group-text" style="color: white; background-color: #ff8404 "><b>開始時間</b></span>
-                                        <input type="text" class="form-control datepicker bg-dark" style="color: #ff8404" id="startTime" aria-describedby="basic-addon3">
+                                        <input type="text" class="form-control datepicker bg-dark" style="color: #ff8404" id="startTime" aria-describedby="basic-addon3" readonly>
                                     </div>
                                     <div class="input-group mb-3">
                                         <span class="input-group-text" style="color: white; background-color: #ff8404 "><b>結束時間</b></span>
-                                        <input type="text" class="form-control datepicker bg-dark" style="color: #ff8404" id="endTime" aria-describedby="basic-addon3">
+                                        <input type="text" class="form-control datepicker bg-dark" style="color: #ff8404" id="endTime" aria-describedby="basic-addon3" readonly>
                                     </div>
                                     <div class="row">
                                         <div class="col-6">
@@ -106,7 +111,6 @@
                             </div>
                         </div>
                         <!--單一版塊End-->
-
                         <!--單一版塊-->
                         <div class="col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
@@ -140,3 +144,234 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 @Scripts.Render("~/Scripts/dashboard-script.js")
 @Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+<!--引入JQuery日期選擇器-->
+@Scripts.Render("~/Scripts/jquery-ui.js")
+<!--引入甘特圖-->
+@Scripts.Render("~/Scripts/frappe-gantt.js")
+<!--引入SW2跳窗-->
+@Scripts.Render("~/Scripts/sweetalert2.js")
+
+
+<!--甘特圖任務-->
+<script>
+    var gantt;
+    var tasks = []
+</script>
+
+<!--取得目前工作列表-->
+<script>
+    function getTasksData() {
+        $.ajax({
+            method: "GET",
+            url: "/API/getTaskInfo",
+            data: {},
+            statusCode: {
+                404: function (err) {
+                    console.error(err)
+                },
+                500: function (err) {
+                    console.error(err)
+                },
+            }
+        })
+            .done(function (msg) {
+                tasks = []
+                let tasksTemp = JSON.parse(msg.data)
+                for (i = 0; i < tasksTemp.length; i++) {
+                    let elementTask = {
+                        id: "task" + i,
+                        name: tasksTemp[i].taskName,
+                        start: tasksTemp[i].startTime,
+                        end: tasksTemp[i].endTime,
+                        progress: (tasksTemp[i].finishedNumber / tasksTemp[i].needNumber) * 100,
+                        custom_class: 'class' + i
+                    }
+                    tasks.push(elementTask);
+                }
+                gantt = new Gantt("#gantt", tasks);
+                gantt.change_view_mode('Month')
+                //'Day', 'Week', 'Month'
+            });
+    }
+</script>
+
+<!--新增工作進度-->
+<script>
+    function clickEvent() {
+        //取得每個欄位內的數值
+        let taskName = document.getElementById("taskName").value;
+        let startTime = document.getElementById("startTime").value;
+        let endTime = document.getElementById("endTime").value;
+        let needNumber = document.getElementById("needNumber").value;
+        let finishedNumber = document.getElementById("finishedNumber").value;
+        //檢查每個欄位都有輸入
+        if (taskName == "" || startTime == "" || endTime == "" || needNumber == "" || finishedNumber == "") {
+            Swal.fire({
+                title: '請確保每個欄位都有輸入!',
+                text: '請檢查是否所有的數值都有輸入',
+                icon: 'error',
+                confirmButtonText: '了解'
+            })
+            return;
+        } else if (parseInt(needNumber) < parseInt(finishedNumber)) {
+            Swal.fire({
+                title: '已經完成數量，應該小於須完成數量!',
+                text: '已經完成數量，應該小於須完成數量',
+                icon: 'error',
+                confirmButtonText: '了解'
+            })
+            return;
+        }
+        //AJAX
+        $.ajax({
+            method: "POST",
+            url: "/API/postTaskInfo",
+            data: {
+                data: JSON.stringify({
+                    "taskName": taskName,
+                    "startTime": startTime,
+                    "endTime": endTime,
+                    "needNumber": needNumber,
+                    "finishedNumber": finishedNumber
+                })
+            },
+            statusCode: {
+                404: function () {
+                    Swal.fire({
+                        title: '找不到網頁!',
+                        text: '請檢察網址是否正確',
+                        icon: 'error',
+                        confirmButtonText: '了解'
+                    })
+                },
+                500: function () {
+                    Swal.fire({
+                        title: '伺服器端錯誤!',
+                        text: '請檢察是否所有的數值都有輸入',
+                        icon: 'error',
+                        confirmButtonText: '了解'
+                    })
+                },
+            }
+        })
+            .done(function (msg) {
+                Swal.fire({
+                    title: '傳送成功!',
+                    text: '新增材料成功，伺服器進行響應' + msg,
+                    icon: 'success',
+                    timer: 1000,
+                    showCancelButton: false,
+                    showConfirmButton: false
+                })
+                getTasksData()
+            });
+    }
+</script>
+
+<!--批次傳輸Excel內容-->
+<script>
+    function uploadXSLXDataAJAX(proCode, startDate, endTime, realToProducted, planToProducted) {
+        //AJAX
+        $.ajax({
+            method: "POST",
+            url: "/API/postTaskInfo",
+            data: {
+                data: JSON.stringify({
+                    "taskName": proCode,
+                    "startTime": startDate,
+                    "endTime": endTime,
+                    "needNumber": realToProducted,
+                    "finishedNumber": planToProducted
+                })
+            },
+            statusCode: {
+                500: function () {
+                    Swal.fire({
+                        title: '伺服器端錯誤!',
+                        text: '請檢察是否所有的數值都有輸入',
+                        icon: 'error',
+                        confirmButtonText: '了解'
+                    })
+                },
+            }
+        })
+            .done(function (msg) {
+                getTasksData()
+            });
+    }
+</script>
+
+<!--取得Excel的內容-->
+<script>
+    /**
+     * 轉換Excel日期
+     * xslxData
+     */
+    function xslxDataConvert(xslxData) {
+        xslxData = xslxData.split('/').reverse()
+        xslxData[0] = '20' + xslxData[0]
+        xslxData[1] = xslxData[1].padStart(2, '0')
+        xslxData[2] = xslxData[2].padStart(2, '0')
+        return xslxData.join('-')
+    }
+    /**
+     * 當檔案上傳時觸發的函數
+     * evt
+     */
+    function handleFileSelect(evt) {
+        var files = evt.target.files;
+        let file = files[0]
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var data = e.target.result;
+            var workbook = XLSX.read(data, {
+                type: 'binary'
+            });
+            workbook.SheetNames.forEach(function (sheetName) {
+                // Here is your object
+                var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                var jsonObjectString = JSON.stringify(XL_row_object);
+                var jsonObject = JSON.parse(jsonObjectString);
+                let dataNeedToUploadArray = []
+                for (i = 1; i < jsonObject.length; i++) {
+                    let proCode = jsonObject[i]['pro_code']
+                    let statDate = jsonObject[i]['sch_date_s']
+                    let endTime = jsonObject[i]['sch_date_e']
+                    let realToProducted = jsonObject[i]['pro_qty']
+                    let planToProducted = jsonObject[i]['fin_qty']
+                    statDate = xslxDataConvert(statDate)
+                    endTime = xslxDataConvert(endTime)
+                    uploadXSLXDataAJAX(proCode, statDate, endTime, realToProducted, planToProducted)
+                }
+            })
+        };
+        reader.onerror = function (ex) {
+            console.log(ex);
+        };
+        reader.readAsBinaryString(file);
+        Swal.fire({
+            title: '傳送成功!',
+            text: '新增材料成功，伺服器進行響應',
+            icon: 'success',
+            timer: 1000,
+            showCancelButton: false,
+            showConfirmButton: false
+        })
+    }
+</script>
+
+<!--JS主函數-->
+<script>
+    $(function () {
+        //檔案上傳事件
+        $("#upload").change(handleFileSelect);
+        //建立滑鼠點擊事件
+        $("#sendDataBTN").click(clickEvent);
+        //設置輸入框的日期
+        $("#startTime").datepicker({ dateFormat: "yy-mm-dd" });
+        $("#endTime").datepicker({ dateFormat: "yy-mm-dd" });
+        //取得資料
+        getTasksData()
+
+    });
+</script>
