@@ -16,7 +16,11 @@
             <nav class="sb-sidenav accordion sb-sidenav-dark" style="background-color: #ff8404" id="sidenavAccordion">
                 <div class="sb-sidenav-menu">
                     <div class="nav">
-                        <a class="nav-link" href="index.html" style="color:white">
+                        <a class="nav-link" href="/Home/Index" style="color:white">
+                            <div class="sb-nav-link-icon" style="color:white"><i class="fa-solid fa-house"></i></div>
+                            首頁
+                        </a>
+                        <a class="nav-link" href="/Home/Plan" style="color:white">
                             <div class="sb-nav-link-icon" style="color:white"><i class="fa-brands fa-gitter"></i></div>
                             工作排程
                         </a>
@@ -69,17 +73,14 @@
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
                                     <h5 style="color: #ff8404">完成進度</h5>
-                                    <div style="text-align:center;height:200px">
-                                        <div class="circular-progress">
-                                            <div class="circular-progress-circle">
-                                                <div class="segment" style="transform: rotate(0deg) skew(0deg)"></div>
-                                                <div class="segment" style="transform: rotate(90deg) skew(0deg)"></div>
-                                                <div class="segment" style="transform: rotate(180deg) skew(0deg)"></div>
-                                                <div class="segment" style="transform: rotate(270deg) skew(90deg)"></div>
-                                            </div>
-                                            <div class="circular-progress-inner"></div>
-                                            <div class="circular-progress-value">75%</div>
-                                        </div>
+                                    <div style="height: 200px; text-align: center;position:relative">
+                                        <!--圓弧進度條-->
+                                        <h1 id="arc-label" style="position: absolute; left: 0; right: 0; margin-left: auto; margin-right: auto; top: 75px; color: #ff8404;">No Data</h1>
+                                        <svg id="svg" width="200" height="200" viewPort="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                            <circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+                                            <circle id="bar" r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+                                        </svg>
+                                        <!--圓弧進度條End-->
                                     </div>
                                 </div>
                             </div>
@@ -127,53 +128,88 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 @Scripts.Render("~/Scripts/dashboard-script.js")
+@Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
 
 <style>
-    .circular-progress {
-        position: relative;
-        display: inline-block;
+
+    #svg circle {
+        stroke-dashoffset: 0;
+        transition: stroke-dashoffset 1s linear;
+        stroke: dimgray;
+        stroke-width: 1em;
     }
 
-    .circular-progress-circle {
-        position: relative;
-        width: 200px;
+    #svg #bar {
+        stroke: #ff8404;
+    }
+
+    #cont {
+        display: block;
         height: 200px;
-        background: transparent;
-        border-radius: 50%;
-        overflow: hidden;
+        width: 200px;
+        margin: 2em auto;
+        box-shadow: 0 0 1em black;
+        border-radius: 100%;
+        position: relative;
     }
 
-    .segment {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 100vw;
-        height: 100vw;
-        background: #ff8404;
-        transform-origin: 0 0;
+        #cont:after {
+            position: absolute;
+            display: block;
+            height: 160px;
+            width: 160px;
+            left: 50%;
+            top: 50%;
+            box-shadow: inset 0 0 1em black;
+            content: attr(data-pct)"%";
+            margin-top: -80px;
+            margin-left: -80px;
+            border-radius: 100%;
+            line-height: 160px;
+            font-size: 2em;
+            text-shadow: 0 0 0.5em black;
+        }
+    /* Make things perty */
+
+    #svg {
+        text-align: center;
     }
 
-    .circular-progress-inner {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: 180px;
-        height: 180px;
-        transform: translateX(-50%) translateY(-50%);
-        background: dimgray;
-        border-radius: 50%;
-    }
 
-    .circular-progress-value {
-        position: absolute;
-        font-size: 400%;
-        font-family: Roboto;
-        font-weight: bold;
-        left: 50%;
-        top: 50%;
-        transform: translateX(-50%) translateY(-50%);
-        color: #ff8404;
+    input {
+        border: 1px solid #666;
+        background: #333;
+        color: #fff;
+        padding: 0.5em;
+        box-shadow: none;
+        outline: none !important;
+        margin: 1em auto;
+        text-align: center;
     }
 </style>
+
+<script>
+    var val = 60;
+    var $circle = $('#svg #bar');
+    $("#arc-label").html(val+"%");
+
+    if (isNaN(val)) {
+        val = 100;
+    }
+    else {
+        var r = $circle.attr('r');
+        var c = Math.PI * (r * 2);
+
+        if (val < 0) { val = 0; }
+        if (val > 100) { val = 100; }
+
+        var pct = ((100 - val) / 100) * c;
+
+        $circle.css({ strokeDashoffset: pct });
+
+        $('#cont').attr('data-pct', val);
+    }
+
+</script>
