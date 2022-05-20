@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using ASP_IPAS.Models;
+using System.IO;
 
 //帳號:Alice 密碼:123
 
@@ -101,6 +102,39 @@ namespace ASP_IPAS.Controllers
             var taskDataObj = JsonConvert.DeserializeObject<TaskData>(data);
             mySQLModel.setTaskData(taskDataObj);
             return Content("");
+        }
+
+        //接收上傳的圖片檔案
+        [HttpPost]
+        public ActionResult file(HttpPostedFileBase file)
+        {
+            MySQLModel mysqlModel = new MySQLModel();
+            byte[] imageBytes = null;
+
+            //若檔案不為空時
+            if (file != null && file.ContentLength > 0)
+                //嘗試將收到的檔案取出，存入Bytes陣列
+                try
+                {
+                    using (BinaryReader theReader = new BinaryReader(file.InputStream))
+                    {
+                        byte[] thePictureAsBytes = theReader.ReadBytes(file.ContentLength);
+                        imageBytes = thePictureAsBytes;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Message = "ERROR:" + ex.Message.ToString();
+                }
+            else
+            {
+                //檔案為空
+            }
+
+            mysqlModel.saveFile(file.FileName, imageBytes);
+
+            return Redirect("/Home/ImageStorage");
+
         }
     }
 }

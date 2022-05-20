@@ -31,9 +31,9 @@
                             工作排程
                         </a>
 
-                        <a class="nav-link" href="charts.html" style="color:white">
+                        <a class="nav-link" href="/Home/ImageStorage" style="color:white">
                             <div class="sb-nav-link-icon" style="color:white"><i class="fas fa-chart-area"></i></div>
-                            檔案上傳
+                            圖片上傳
                         </a>
 
                         <a class="nav-link" href="tables.html" style="color:white">
@@ -42,7 +42,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="sb-sidenav-footer">
+                <div class="sb-sidenav-footer bg-dark">
                     <div class="small">期末作業:</div>
                     IPAS工業生產輔助
                 </div>
@@ -129,13 +129,15 @@
 
                 </div>
             </main>
-            <footer class="py-4  mt-auto" style="background-color: #343a40">
-                <div class="container-fluid px-4" style="background-color: #343a40">
+            <!--頁尾Start-->
+            <footer class="py-4  mt-auto bg-dark" style="">
+                <div class="container-fluid px-4" style="">
                     <div class="d-flex align-items-center justify-content-between small">
-                        <div class="" style="background-color: #343a40;color:white">Copyright &copy; 蕭維均 1100336</div>
+                        <div class="" style="color:white">Copyright &copy; 蕭維均 1100336</div>
                     </div>
                 </div>
             </footer>
+            <!--頁尾End-->
         </div>
     </div>
 
@@ -315,7 +317,7 @@
         return xslxData.join('-')
     }
     /**
-     * 當檔案上傳時觸發的函數
+     * 當圖片上傳時觸發的函數
      * evt
      */
     function handleFileSelect(evt) {
@@ -363,7 +365,7 @@
 <!--JS主函數-->
 <script>
     $(function () {
-        //檔案上傳事件
+        //圖片上傳事件
         $("#upload").change(handleFileSelect);
         //建立滑鼠點擊事件
         $("#sendDataBTN").click(clickEvent);

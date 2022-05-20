@@ -60,12 +60,12 @@ namespace ASP_IPAS.Models
             conn = new MySqlConnection();
             conn.ConnectionString = connString;
             conn.Open();
-            
+
             //重建資料庫
             string sql = @"CREATE DATABASE IF NOT EXISTS `mvcdb`;USE `mvcdb`;";
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.ExecuteNonQuery();
-            
+
             //重建使用者資料表
             sql = @"
                 CREATE TABLE IF NOT EXISTS `user` (
@@ -104,6 +104,19 @@ namespace ASP_IPAS.Models
             cmd = new MySqlCommand(sql, conn);
             cmd.ExecuteNonQuery();
 
+            //重建檔案上傳資料庫
+            sql = @"
+                CREATE TABLE IF NOT EXISTS `images` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(50) DEFAULT NULL,
+                  `image` longblob DEFAULT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            ";
+            //
+            cmd = new MySqlCommand(sql, conn);
+            cmd.ExecuteNonQuery();
+
             conn.Close();
         }
 
@@ -127,7 +140,7 @@ namespace ASP_IPAS.Models
                 {
                     userDataModel.id = sdr["id"].ToString();
                     userDataModel.name = sdr["name"].ToString();
-                    userDataModel.password_hash= sdr["password_hash"].ToString();
+                    userDataModel.password_hash = sdr["password_hash"].ToString();
                 }
             }
 
@@ -207,6 +220,23 @@ namespace ASP_IPAS.Models
             cmd.ExecuteNonQuery();
             conn.Close();
 
+        }
+
+        //儲存檔案
+        public void saveFile( string fileName, byte[] imageBytes)
+        {
+            conn.Open();
+            string sql = @"INSERT INTO images (image , name) VALUES (@image , @name)";
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+
+            cmd.Parameters.Add("@image", MySqlDbType.MediumBlob);
+            cmd.Parameters["@image"].Value = imageBytes;
+
+            cmd.Parameters.Add("@name", MySqlDbType.VarChar);
+            cmd.Parameters["@name"].Value = fileName;
+
+            cmd.ExecuteNonQuery();
+            conn.Close();
         }
     }
 }

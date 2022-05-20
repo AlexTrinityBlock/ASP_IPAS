@@ -1,0 +1,149 @@
+﻿<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+<!--Bootstrap儀錶板CSS-->
+@Styles.Render("~/Content/dashboard-styles.css")
+<!--甘特圖CSS-->
+@Styles.Render("~/Content/frappe-gantt.css")
+<!--JQuery-UI日期選擇器CSS-->
+@Styles.Render("~/Content/jquery-ui.css")
+<!--Fontawesome小圖標-->
+<script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+
+<body class="sb-nav-fixed" style="background-color:black">
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <!-- Navbar Brand-->
+        <div class="navbar-brand ps-3" href="index.html" style="color: #ff8404">IPAS生產輔助系統</div>
+        <!-- Sidebar Toggle-->
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+    </nav>
+
+    <div id="layoutSidenav">
+        <!--側邊欄Start-->
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" style="background-color: #ff8404" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <a class="nav-link" href="/Home/Index" style="color:white">
+                            <div class="sb-nav-link-icon" style="color:white"><i class="fa-solid fa-house"></i></div>
+                            首頁
+                        </a>
+                        <a class="nav-link" href="/Home/Plan" style="color:white">
+                            <div class="sb-nav-link-icon" style="color:white"><i class="fa-brands fa-gitter"></i></div>
+                            工作排程
+                        </a>
+
+                        <a class="nav-link" href="/Home/ImageStorage" style="color:white">
+                            <div class="sb-nav-link-icon" style="color:white"><i class="fas fa-chart-area"></i></div>
+                            圖片上傳
+                        </a>
+
+                        <a class="nav-link" href="tables.html" style="color:white">
+                            <div class="sb-nav-link-icon" style="color:white"><i class="fas fa-table"></i></div>
+                            打卡
+                        </a>
+                    </div>
+                </div>
+                <div class="sb-sidenav-footer bg-dark">
+                    <div class="small">期末作業:</div>
+                    IPAS工業生產輔助
+                </div>
+            </nav>
+        </div>
+        <!--側邊欄End-->
+
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4" style="color: #ff8404">圖片儲存</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active" style="color: #ff8404">上傳與分享圖片。</li>
+                    </ol>
+
+                    <div class="row">
+                        <!--單一版塊-->
+                        <div class="col-md-12">
+                            <div class="card text-white mb-4" style="background-color:dimgray">
+                                <div class="card-body">
+                                    <h3 style="color: #ff8404"><b>檔案上傳</b></h3>
+                                    <hr />
+                                    <!--檔案上傳Start-->
+                                    @using (Html.BeginForm("file", "API", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                    {
+                                        <label class="form-label">可上傳圖片檔。</label>
+                                        <input id="file" class="form-control" type=file name="file" style="color: #ff8404; background-color: black ">
+                                        <br>
+                                        <button type="submit" class="btn btn-success" id="sendFileBTN" style="background-color: #ff8404; border-color: #F75000 ">送出</button>
+                                    }
+                                    <!--檔案上傳End-->
+                                </div>
+                            </div>
+                        </div>
+                        <!--單一版塊End-->
+                    </div>
+
+                </div>
+            </main>
+            <!--頁尾Start-->
+            <footer class="py-4  mt-auto bg-dark" style="">
+                <div class="container-fluid px-4" style="">
+                    <div class="d-flex align-items-center justify-content-between small">
+                        <div class="" style="color:white">Copyright &copy; 蕭維均 1100336</div>
+                    </div>
+                </div>
+            </footer>
+            <!--頁尾End-->
+        </div>
+    </div>
+
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+@Scripts.Render("~/Scripts/dashboard-script.js")
+@Scripts.Render("~/Scripts/jquery-3.4.1.min.js")
+<!--引入JQuery日期選擇器-->
+@Scripts.Render("~/Scripts/jquery-ui.js")
+<!--引入甘特圖-->
+@Scripts.Render("~/Scripts/frappe-gantt.js")
+<!--引入SW2跳窗-->
+@Scripts.Render("~/Scripts/sweetalert2.js")
+
+<!--圖片上傳-->
+<script>
+    /**
+     * 當圖片上傳時觸發的函數
+     * evt
+     */
+    function handleFileSelect() {
+        let formData = new FormData();
+        formData.append("file", upload.files[0]);
+        //AJAX
+        $.ajax({
+            method: "POST",
+            url: "/API/file",
+            data: {
+                "file": "123"
+            },
+            statusCode: {
+                404: function (err) {
+                    console.error(err)
+                },
+                500: function (err) {
+                    console.error(err)
+                },
+            },
+            contentType: false,
+            processData: false
+        })
+            .done(function (msg) {
+                console.log(msg)
+            });
+    }
+</script>
+
+<!--JS主函數-->
+<script>
+    $(function () {
+        //圖片上傳事件
+        //$("#sendFileBTN").click(handleFileSelect);
+
+    });
+</script>

@@ -42,8 +42,29 @@ namespace ASP_IPAS.Controllers
         }
 
         //計畫頁面
-        public ActionResult Plan() { 
-            return View();
+        public ActionResult Plan()
+        {
+            if ((string)(Session["IsLogin"]) == "true")
+            {
+                return View();
+            }
+            else
+            {
+                return Redirect("/Home/Login");
+            }
+        }
+
+        //儲存圖片頁面
+        public ActionResult ImageStorage()
+        {
+            if ((string)(Session["IsLogin"]) == "true")
+            {
+                return View();
+            }
+            else
+            {
+                return Redirect("/Home/Login");
+            }
         }
     }
 }

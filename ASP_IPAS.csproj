@@ -179,9 +179,11 @@
     <Content Include="Views\Home\Login.cshtml" />
     <Content Include="Views\Home\Dashboard.cshtml" />
     <Content Include="Views\Home\Plan.cshtml" />
+    <Content Include="Views\Home\ImageStorage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Controllers\files\" />
     <Folder Include="Views\API\" />
   </ItemGroup>
   <ItemGroup>
