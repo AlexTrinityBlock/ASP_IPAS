@@ -136,5 +136,27 @@ namespace ASP_IPAS.Controllers
             return Redirect("/Home/ImageStorage");
 
         }
+
+        //取得圖片清單列表
+        public ActionResult getFileList()
+        {
+            MySQLModel mySQLModel = new MySQLModel();
+            List<FileData> fileList = mySQLModel.getFileList();
+            var jsonData = JsonConvert.SerializeObject(fileList);
+            var resultData = new { data = jsonData };
+            return Json(resultData, JsonRequestBehavior.AllowGet);
+        }
+
+        //檔案下載
+        [HttpGet]
+        public ActionResult downloadFile(string fileID)
+        {
+            MySQLModel mysqlModel = new MySQLModel();
+            FileData fileData = mysqlModel.downloadFile(fileID);
+
+            //回傳出檔案
+            return File(fileData.fileData, "application/unknow", fileData.fileName);
+
+        }
     }
 }

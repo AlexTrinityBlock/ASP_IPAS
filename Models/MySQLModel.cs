@@ -223,7 +223,7 @@ namespace ASP_IPAS.Models
         }
 
         //儲存檔案
-        public void saveFile( string fileName, byte[] imageBytes)
+        public void saveFile(string fileName, byte[] imageBytes)
         {
             conn.Open();
             string sql = @"INSERT INTO images (image , name) VALUES (@image , @name)";
@@ -237,6 +237,55 @@ namespace ASP_IPAS.Models
 
             cmd.ExecuteNonQuery();
             conn.Close();
+        }
+
+        public List<FileData> getFileList()
+        {
+            conn.ConnectionString = connString;
+            if (conn.State != ConnectionState.Open)
+                conn.Open();
+            string sql = @"SELECT * FROM `images`";
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            MySqlDataReader sdr = cmd.ExecuteReader();
+
+            FileData fileData = new FileData();
+            List<FileData> fileList = new List<FileData>();
+
+            while (sdr.Read())
+            {
+                fileData.id = sdr["id"].ToString();
+                fileData.fileName=sdr["name"].ToString();
+                fileList.Add(fileData);
+            }
+            return fileList;
+        }
+
+        //下載檔案
+        public FileData downloadFile(string fileID) {
+            //SQL connect
+            conn.ConnectionString = connString;
+            if (conn.State != ConnectionState.Open)
+                conn.Open();
+            string sql = @"SELECT `image`, `name` FROM `images` WHERE id=@Search";
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+
+            cmd.Parameters.Add("@Search", MySqlDbType.Int64);
+            cmd.Parameters["@Search"].Value = fileID;
+
+            DataTable dataTable = new DataTable();
+            MySqlDataReader sdr = cmd.ExecuteReader();
+
+            FileData fileData = new FileData();
+
+            while (sdr.Read())
+            {
+                fileData.fileData = (byte[])sdr["image"];
+                fileData.fileName = sdr["name"].ToString();
+            }
+
+            
+
+            return fileData;
         }
     }
 }
