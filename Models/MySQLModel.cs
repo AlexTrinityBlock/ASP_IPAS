@@ -248,11 +248,12 @@ namespace ASP_IPAS.Models
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             MySqlDataReader sdr = cmd.ExecuteReader();
 
-            FileData fileData = new FileData();
+            FileData fileData = null;
             List<FileData> fileList = new List<FileData>();
 
             while (sdr.Read())
             {
+                fileData = new FileData();
                 fileData.id = sdr["id"].ToString();
                 fileData.fileName=sdr["name"].ToString();
                 fileList.Add(fileData);

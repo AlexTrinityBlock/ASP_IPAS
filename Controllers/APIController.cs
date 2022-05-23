@@ -129,6 +129,7 @@ namespace ASP_IPAS.Controllers
             else
             {
                 //檔案為空
+                return Redirect("/Home/ImageStorage");
             }
 
             mysqlModel.saveFile(file.FileName, imageBytes);

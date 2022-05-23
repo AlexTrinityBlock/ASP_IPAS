@@ -35,10 +35,12 @@
                             圖片上傳
                         </a>
 
-                        <a class="nav-link" href="tables.html" style="color:white">
+                        <!--
+                            <a class="nav-link" href="tables.html" style="color:white">
                             <div class="sb-nav-link-icon" style="color:white"><i class="fas fa-table"></i></div>
                             打卡
                         </a>
+                        -->
                     </div>
                 </div>
 
@@ -58,6 +60,8 @@
                         <li class="breadcrumb-item active" style="color: #ff8404">輸入排程，概覽生產流程。</li>
                     </ol>
                     <div class="row">
+                        <!--打卡區塊Start-->
+                        <!--
                         <div class=" col-md-6">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
@@ -76,11 +80,13 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class=" col-md-6">
+                        -->
+                        <!--打卡區塊End-->
+                        <!--進度條區塊Start-->
+                        <div class=" col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
-                                    <h5 style="color: #ff8404">完成進度</h5>
+                                    <h5 style="color: #ff8404">工作完成進度</h5>
                                     <div style="height: 200px; text-align: center;position:relative">
                                         <!--圓弧進度條-->
                                         <h1 id="arc-label" style="position: absolute; left: 0; right: 0; margin-left: auto; margin-right: auto; top: 75px; color: #ff8404;">No Data</h1>
@@ -93,15 +99,8 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class=" col-md-12">
-                            <div class="card text-white mb-4" style="background-color:dimgray">
-                                <div class="card-body">
-                                    <h5 style="color: #ff8404">圖片檔案清單</h5>
-                                </div>
-                            </div>
-                        </div>
-
+                        <!--進度條區塊End-->
+                        <!--工作排程區塊Start-->
                         <div class=" col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
@@ -112,14 +111,28 @@
                                 </div>
                             </div>
                         </div>
-
+                        <!--工作排程區塊End-->
+                        <!--圖片檔案Start-->
                         <div class=" col-md-12">
                             <div class="card text-white mb-4" style="background-color:dimgray">
                                 <div class="card-body">
-                                    <h5 style="color: #ff8404">待辦事項</h5>
+                                    <h5 style="color: #ff8404">圖片檔案清單</h5>
+                                    <table class="table table-dark">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">檔名</th>
+                                                <th scope="col">下載連結</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="file-table">
+                                            <!--表格欄位-->
+                                        </tbody>
+                                    </table>
+                                    <a href="/Home/ImageStorage" class="btn btn-warning" style="background-color: #ff8404;color:white">查看更多檔案</a>
                                 </div>
                             </div>
                         </div>
+                        <!--圖片檔案End-->
 
                     </div>
 
@@ -210,8 +223,8 @@
 
 <!--圓環統計圖JS-->
 <script>
-    function arcProgressBar() {
-        var val = 60;
+    function arcProgressBar(progress) {
+        var val = progress;
         var $circle = $('#svg #bar');
         $("#arc-label").html(val + "%");
 
@@ -260,7 +273,11 @@
             .done(function (msg) {
                 tasks = []
                 let tasksTemp = JSON.parse(msg.data)
+                let finishedNumberSum = 0
+                let needNumberSum=0
                 for (i = 0; i < tasksTemp.length; i++) {
+                    finishedNumberSum += parseInt(tasksTemp[i].finishedNumber,10)
+                    needNumberSum += parseInt(tasksTemp[i].needNumber,10)
                     let elementTask = {
                         id: "task" + i,
                         name: tasksTemp[i].taskName,
@@ -274,6 +291,65 @@
                 gantt = new Gantt("#gantt", tasks);
                 gantt.change_view_mode('Month')
                 //'Day', 'Week', 'Month'
+                console.log(finishedNumberSum, needNumberSum)
+                arcProgressBar((finishedNumberSum / needNumberSum)*100)
+            });
+    }
+</script>
+
+<!--建立下載連結表格-->
+<script>
+    function buildFileTable(dataArray) {
+        let tableObj = document.querySelector("#file-table")
+        let numberOfFileToShow = 3
+        if (dataArray.length < 3) numberOfFileToShow = dataArray.length
+
+        for (i = 0; i < numberOfFileToShow; i++) {
+            let element = dataArray[i]
+            let id = element.id;
+            let fileName = element.fileName;
+            let newRow = document.createElement("tr");
+            let newColName = document.createElement("td");
+            let newColImageDownload = document.createElement("td");
+            let newAImageDownload = document.createElement("a");
+
+            newColName.innerHTML = fileName;
+            newAImageDownload.innerHTML = "下載檔案";
+            newAImageDownload.href = "/API/downloadFile/?fileID=" + id;
+            newAImageDownload.classList.add("btn")
+            newAImageDownload.classList.add("btn-warning")
+            newAImageDownload.classList.add("text-light")
+            newAImageDownload.style.backgroundColor = "#ff8404"
+            newColImageDownload.appendChild(newAImageDownload)
+
+            newRow.appendChild(newColName)
+            newRow.appendChild(newColImageDownload)
+            tableObj.appendChild(newRow)
+        }
+    }
+</script>
+
+<!--取得檔案清單資料-->
+<script>
+    function getFileList() {
+        $.ajax({
+            method: "GET",
+            url: "/API/getFileList",
+            data: {
+            },
+            statusCode: {
+                500: function () {
+                    Swal.fire({
+                        title: '伺服器端錯誤!',
+                        text: '請檢察是否所有的數值都有輸入',
+                        icon: 'error',
+                        confirmButtonText: '了解'
+                    })
+                }
+            }
+        })
+            .done(function (msg) {
+                buildFileTable(JSON.parse(msg.data))
             });
     }
 </script>
@@ -283,7 +359,7 @@
     $(function () {
         //取得資料
         getTasksData()
-        arcProgressBar()
+        getFileList()
     });
 </script>
 
