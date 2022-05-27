@@ -7,6 +7,7 @@ using System.Data;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using ASP_IPAS.Models;
+using System.Globalization;
 
 namespace ASP_IPAS.Models
 {
@@ -110,6 +111,19 @@ namespace ASP_IPAS.Models
                   `id` int(11) NOT NULL AUTO_INCREMENT,
                   `name` varchar(50) DEFAULT NULL,
                   `image` longblob DEFAULT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            ";
+            //
+            cmd = new MySqlCommand(sql, conn);
+            cmd.ExecuteNonQuery();
+
+            //重建打卡紀錄
+            sql = @"
+                CREATE TABLE IF NOT EXISTS `attendance_record` (
+                  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                  `user_id` int(10) unsigned DEFAULT NULL,
+                  `clock_in_time` varchar(50) DEFAULT NULL,
                   PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
             ";
@@ -239,6 +253,7 @@ namespace ASP_IPAS.Models
             conn.Close();
         }
 
+        //取得檔案清單
         public List<FileData> getFileList()
         {
             conn.ConnectionString = connString;
@@ -255,14 +270,15 @@ namespace ASP_IPAS.Models
             {
                 fileData = new FileData();
                 fileData.id = sdr["id"].ToString();
-                fileData.fileName=sdr["name"].ToString();
+                fileData.fileName = sdr["name"].ToString();
                 fileList.Add(fileData);
             }
             return fileList;
         }
 
         //下載檔案
-        public FileData downloadFile(string fileID) {
+        public FileData downloadFile(string fileID)
+        {
             //SQL connect
             conn.ConnectionString = connString;
             if (conn.State != ConnectionState.Open)
@@ -284,9 +300,67 @@ namespace ASP_IPAS.Models
                 fileData.fileName = sdr["name"].ToString();
             }
 
-            
+
 
             return fileData;
+        }
+
+        //新增打卡紀錄
+        public void clockIn(string userID)
+        {
+            DateTime utcDate = DateTime.UtcNow;
+            var culture = new CultureInfo("en-US");
+
+            conn.Open();
+            string sql = @"INSERT INTO attendance_record (user_id , clock_in_time) VALUES (@user_id , @clock_in_time)";
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+
+            cmd.Parameters.Add("@user_id", MySqlDbType.Int32);
+            cmd.Parameters["@user_id"].Value = Convert.ToInt32(userID);
+
+            cmd.Parameters.Add("@clock_in_time", MySqlDbType.VarChar);
+            cmd.Parameters["@clock_in_time"].Value = utcDate.ToString(culture);
+
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
+
+        //檢查今日是否打卡
+        public bool checkClockInToday(string userID)
+        {
+            conn.Open();
+            string sql = @"SELECT * FROM `attendance_record` WHERE `user_id` =  @user_id  ORDER BY id DESC LIMIT 0, 1";
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+
+            cmd.Parameters.Add("@user_id", MySqlDbType.Int32);
+            cmd.Parameters["@user_id"].Value = Convert.ToInt32(userID);
+
+
+            DataTable dataTable = new DataTable();
+            MySqlDataReader sdr = cmd.ExecuteReader();
+
+            String lastClockInString = "";
+
+            if (sdr.HasRows)
+            {
+                while (sdr.Read())
+                {
+                    lastClockInString = sdr["clock_in_time"].ToString();
+                }
+            }
+            conn.Close();
+
+            DateTime nowDateTime = DateTime.UtcNow;
+            DateTime lastClockIn = DateTimeOffset.Parse(lastClockInString).UtcDateTime;
+
+            string timeDiffString=(nowDateTime - lastClockIn).Hours.ToString();
+            int timeDiffInt= Convert.ToInt32(timeDiffString);
+
+            if (timeDiffInt > 8) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 }

@@ -85,10 +85,13 @@ namespace ASP_IPAS.Controllers
             return Json(jsonData, JsonRequestBehavior.AllowGet);
         }
 
+        /*-----------------以下受保護-------------------*/
+
         //取得排程任務資訊
         [HttpGet]
         public ActionResult getTaskInfo(string data)
         {
+            if ((string)(Session["IsLogin"]) != "true") { return Content("Deny"); }//阻止未授權登入
             MySQLModel mySQLModel = new MySQLModel();
             var jsonData = new { data = mySQLModel.getTaskData() };
             return Json(jsonData, JsonRequestBehavior.AllowGet);
@@ -98,6 +101,7 @@ namespace ASP_IPAS.Controllers
         [HttpPost]
         public ActionResult postTaskInfo(string data)
         {
+            if ((string)(Session["IsLogin"]) != "true") { return Content("Deny"); }//阻止未授權登入
             MySQLModel mySQLModel = new MySQLModel();
             var taskDataObj = JsonConvert.DeserializeObject<TaskData>(data);
             mySQLModel.setTaskData(taskDataObj);
@@ -108,6 +112,7 @@ namespace ASP_IPAS.Controllers
         [HttpPost]
         public ActionResult file(HttpPostedFileBase file)
         {
+            if ((string)(Session["IsLogin"]) != "true") { return Content("Deny"); }//阻止未授權登入
             MySQLModel mysqlModel = new MySQLModel();
             byte[] imageBytes = null;
 
@@ -141,6 +146,7 @@ namespace ASP_IPAS.Controllers
         //取得圖片清單列表
         public ActionResult getFileList()
         {
+            if ((string)(Session["IsLogin"]) != "true") { return Content("Deny"); }//阻止未授權登入
             MySQLModel mySQLModel = new MySQLModel();
             List<FileData> fileList = mySQLModel.getFileList();
             var jsonData = JsonConvert.SerializeObject(fileList);
@@ -152,12 +158,31 @@ namespace ASP_IPAS.Controllers
         [HttpGet]
         public ActionResult downloadFile(string fileID)
         {
+            if ((string)(Session["IsLogin"]) != "true") { return Content("Deny"); }//阻止未授權登入
             MySQLModel mysqlModel = new MySQLModel();
             FileData fileData = mysqlModel.downloadFile(fileID);
 
             //回傳出檔案
             return File(fileData.fileData, "application/unknow", fileData.fileName);
 
+        }
+
+        //新增打卡紀錄
+        [HttpGet]
+        public ActionResult clockIn(string userID)
+        {
+            MySQLModel mysqlModel = new MySQLModel();
+            mysqlModel.clockIn(userID);
+            return Content("Success");
+        }
+
+        //檢查今天是否打卡
+        public ActionResult checkClockInToday(string userID)
+        {
+            MySQLModel mysqlModel = new MySQLModel();
+            bool result = mysqlModel.checkClockInToday(userID);
+            var resultData = new { data = result };
+            return Json(resultData, JsonRequestBehavior.AllowGet);
         }
     }
 }
