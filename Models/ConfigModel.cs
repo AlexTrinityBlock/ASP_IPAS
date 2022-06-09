@@ -7,7 +7,9 @@ namespace ASP_IPAS.Models
 {
     public class ConfigModel
     {
+        //MySQL帳號
         public string MySQLUser="root";
+        //MySQL密碼
         public string MySQLPassword = "root";
     }
 }
